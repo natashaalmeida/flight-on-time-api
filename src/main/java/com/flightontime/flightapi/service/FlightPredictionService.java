@@ -33,6 +33,10 @@ public class FlightPredictionService {
     }
 
     public FlightPredictionResponse fallbackPredictDelay(FlightRequest flightRequest, Throwable t) {
+        if(t instanceof AirportNotFoundException) {
+            throw (AirportNotFoundException) t;
+        }
+
         if(t instanceof CallNotPermittedException) {
             throw new DataScienceApiOfflineException("O circuito está aberto. Chamada ao serviço de Data Science interrompida");
         }
