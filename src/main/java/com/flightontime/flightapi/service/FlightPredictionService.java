@@ -1,5 +1,6 @@
 package com.flightontime.flightapi.service;
 
+import com.flightontime.flightapi.domain.AirportNotFoundException;
 import com.flightontime.flightapi.domain.DataScienceApiOfflineException;
 import com.flightontime.flightapi.domain.voo.dto.FlightPredictionResponse;
 import com.flightontime.flightapi.domain.voo.dto.FlightRequest;
@@ -18,9 +19,15 @@ public class FlightPredictionService {
     @Autowired
     private DataScienceClientInterface client;
 
+    @Autowired
+    private AirportService airportService;
+
     @CircuitBreaker(name = "externalService", fallbackMethod = "fallbackPredictDelay")
     public FlightPredictionResponse predictDelay(FlightRequest flightRequest) {
-        DataScienceApiRequest apiRequest = FlightPredictionMapper.toDsApiRequest(flightRequest);
+        String airportOriginFullName = airportService.getAirportByIataCode(flightRequest.origem()).fullName();
+        String airportDestinationFullName = airportService.getAirportByIataCode(flightRequest.destino()).fullName();
+        DataScienceApiRequest apiRequest = FlightPredictionMapper.
+                toDsApiRequest(flightRequest, airportOriginFullName, airportDestinationFullName);
         DataScienceApiResponse apiResponse = client.getFlightPrediction(apiRequest);
         return FlightPredictionMapper.toFlightPredictionResponse(apiResponse);
     }
